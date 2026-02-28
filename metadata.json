@@ -1,0 +1,7 @@
+{
+  "name": "今天吃什麼 (What to Eat Today)",
+  "description": "A mobile-first PWA that helps users decide what to eat using a random roulette, and finds nearby high-quality restaurants using Google Maps and AI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
