@@ -103,6 +103,13 @@ export const Home: React.FC = () => {
 
       <A2HSTooltip />
 
+      {/* Footer */}
+      <footer className="w-full py-4 text-center">
+        <p className="text-slate-400 text-xs font-medium tracking-wide">
+          Created by Autumn Snow
+        </p>
+      </footer>
+
       {/* Location Prompt Modal */}
       <AnimatePresence>
         {showLocationPrompt && selectedCategory && (
