@@ -2,62 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
-
-export type Category = {
-  id: string;
-  color: string;
-};
-
-const CATEGORIES: Category[] = [
-  { id: 'ramen', color: '#FF6B6B' },
-  { id: 'sushi', color: '#4ECDC4' },
-  { id: 'healthy', color: '#45B7D1' },
-  { id: 'burger', color: '#FDCB6E' },
-  { id: 'pasta', color: '#6C5CE7' },
-  { id: 'spicy', color: '#FF7675' },
-  { id: 'curry', color: '#E17055' },
-  { id: 'thai', color: '#00B894' },
-  { id: 'potstickers', color: '#FF9F43' },
-  { id: 'dryNoodles', color: '#54A0FF' },
-  { id: 'instantNoodles', color: '#5F27CD' },
-  { id: 'steak', color: '#FF4757' },
-  { id: 'friedChicken', color: '#2ED573' },
-  { id: 'pizza', color: '#FFA502' },
-  { id: 'hotpot', color: '#3742FA' },
-  { id: 'dumplings', color: '#FF7F50' },
-  { id: 'bento', color: '#2F3542' },
-  { id: 'vegetarian', color: '#7BED9F' },
-  { id: 'teppanyaki', color: '#ECCC68' },
-  { id: 'dessert', color: '#FF6348' },
-  { id: 'bbq', color: '#e17055' },
-  { id: 'brunch', color: '#fdcb6e' },
-  { id: 'korean', color: '#d63031' },
-  { id: 'vietnamese', color: '#00cec9' },
-  { id: 'braisedPorkRice', color: '#b2bec3' },
-  { id: 'beefNoodleSoup', color: '#636e72' },
-  { id: 'friedRice', color: '#ffeaa7' },
-  { id: 'dimSum', color: '#fab1a0' },
-  { id: 'salad', color: '#55efc4' },
-  { id: 'sandwich', color: '#81ecec' },
-  { id: 'oden', color: '#74b9ff' },
-  { id: 'buffet', color: '#a29bfe' },
-  { id: 'fastFood', color: '#ff7675' },
-  { id: 'seafood', color: '#0984e3' },
-  { id: 'iceCream', color: '#fd79a8' },
-];
+import { Category } from '../constants';
 
 interface RouletteProps {
-  onResult: (category: string) => void;
+  categories: Category[];
+  onResult: (category: Category) => void;
 }
 
-export const Roulette: React.FC<RouletteProps> = ({ onResult }) => {
+export const Roulette: React.FC<RouletteProps> = ({ categories, onResult }) => {
   const { t } = useTranslation();
   const [isSpinning, setIsSpinning] = useState(false);
   const controls = useAnimation();
   const currentRotation = useRef(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const lastSoundRotation = useRef(0);
-  const sliceAngle = 360 / CATEGORIES.length;
+  const sliceAngle = 360 / categories.length;
 
   useEffect(() => {
     const initAudio = () => {
@@ -130,11 +89,11 @@ export const Roulette: React.FC<RouletteProps> = ({ onResult }) => {
   };
 
   const spin = async () => {
-    if (isSpinning) return;
+    if (isSpinning || categories.length === 0) return;
     setIsSpinning(true);
 
-    const randomIndex = Math.floor(Math.random() * CATEGORIES.length);
-    const selectedCategory = CATEGORIES[randomIndex];
+    const randomIndex = Math.floor(Math.random() * categories.length);
+    const selectedCategory = categories[randomIndex];
     
     // Reset sound tracking
     lastSoundRotation.current = currentRotation.current;
@@ -172,12 +131,14 @@ export const Roulette: React.FC<RouletteProps> = ({ onResult }) => {
     }
 
     setTimeout(() => {
-      onResult(selectedCategory.id);
+      onResult(selectedCategory);
     }, 800);
   };
 
   const renderWheel = () => {
-    const numSlices = CATEGORIES.length;
+    const numSlices = categories.length;
+    if (numSlices === 0) return null;
+    
     const sliceAngle = 360 / numSlices;
     const radius = 50;
     const center = 50;
@@ -185,7 +146,7 @@ export const Roulette: React.FC<RouletteProps> = ({ onResult }) => {
     return (
       <svg viewBox="0 0 100 100" className="w-full h-full rounded-full drop-shadow-xl">
         <g transform={`rotate(-90 ${center} ${center})`}>
-          {CATEGORIES.map((cat, index) => {
+          {categories.map((cat, index) => {
             const startAngle = index * sliceAngle;
             const endAngle = startAngle + sliceAngle;
             
@@ -209,21 +170,23 @@ export const Roulette: React.FC<RouletteProps> = ({ onResult }) => {
             const textY = center + textRadius * Math.sin((textAngle * Math.PI) / 180);
             const isLeft = textAngle > 90 && textAngle < 270;
 
+            const label = cat.isCustom ? (cat.customName || cat.id) : t(`categories.${cat.id}`);
+
             return (
-              <g key={cat.id}>
+              <g key={cat.id + index}>
                 <path d={pathData} fill={cat.color} stroke="#ffffff" strokeWidth="0.2" />
                 <text
                   x={textX}
                   y={textY}
                   fill="white"
-                  fontSize="2" // Smaller font size for 35 items
+                  fontSize={numSlices > 20 ? "2" : "3"} // Adjust font size based on slice count
                   fontWeight="bold"
                   textAnchor={isLeft ? "start" : "end"}
                   dominantBaseline="middle"
                   transform={`rotate(${isLeft ? textAngle + 180 : textAngle} ${textX} ${textY})`}
                   style={{ textShadow: '0px 0.5px 1px rgba(0,0,0,0.8)' }}
                 >
-                  {t(`categories.${cat.id}`)}
+                  {label}
                 </text>
               </g>
             );

@@ -71,6 +71,12 @@ const resources = {
         emptyTitle: '還沒有收藏',
         emptyDesc: '轉動轉盤，尋找並收藏你喜歡的餐廳吧！',
         goSpin: '去轉盤看看',
+      },
+      filter: {
+        title: '篩選食物',
+        selectAll: '全選',
+        deselectAll: '取消全選',
+        confirm: '確認',
       }
     },
   },
@@ -143,6 +149,12 @@ const resources = {
         emptyTitle: 'No favorites yet',
         emptyDesc: 'Spin the wheel, find and save your favorite restaurants!',
         goSpin: 'Go Spin',
+      },
+      filter: {
+        title: 'Filter Foods',
+        selectAll: 'Select All',
+        deselectAll: 'Deselect All',
+        confirm: 'Confirm',
       }
     },
   },
@@ -215,6 +227,12 @@ const resources = {
         emptyTitle: 'まだお気に入りがありません',
         emptyDesc: 'ルーレットを回して、お気に入りのレストランを見つけて保存しましょう！',
         goSpin: 'ルーレットへ',
+      },
+      filter: {
+        title: '食べ物を絞り込む',
+        selectAll: 'すべて選択',
+        deselectAll: 'すべて解除',
+        confirm: '確認',
       }
     },
   },
