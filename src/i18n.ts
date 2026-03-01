@@ -77,6 +77,8 @@ const resources = {
         selectAll: '全選',
         deselectAll: '取消全選',
         confirm: '確認',
+        addCustom: '新增自訂選項...',
+        add: '新增',
       }
     },
   },
@@ -155,6 +157,8 @@ const resources = {
         selectAll: 'Select All',
         deselectAll: 'Deselect All',
         confirm: 'Confirm',
+        addCustom: 'Add custom option...',
+        add: 'Add',
       }
     },
   },
@@ -233,6 +237,8 @@ const resources = {
         selectAll: 'すべて選択',
         deselectAll: 'すべて解除',
         confirm: '確認',
+        addCustom: 'カスタムオプションを追加...',
+        add: '追加',
       }
     },
   },

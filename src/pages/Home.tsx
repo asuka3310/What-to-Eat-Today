@@ -1,17 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Roulette } from '../components/Roulette';
 import { A2HSTooltip } from '../components/A2HSTooltip';
-import { MapPin, Navigation, Globe, Filter, X, Check } from 'lucide-react';
+import { MapPin, Navigation, Globe, Filter, X, Check, Share2, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DEFAULT_CATEGORIES, Category } from '../constants';
+
+const STORAGE_KEY_CUSTOM = 'food-spinner-custom-categories';
+const STORAGE_KEY_ACTIVE = 'food-spinner-active-categories';
 
 export const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [activeCategories, setActiveCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  
+  // Initialize state from localStorage if available
+  const [customCategories, setCustomCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CUSTOM);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  const [activeCategories, setActiveCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_ACTIVE);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure we have at least one valid category
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+      return DEFAULT_CATEGORIES;
+    } catch {
+      return DEFAULT_CATEGORIES;
+    }
+  });
+
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customCategories));
+  }, [customCategories]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_ACTIVE, JSON.stringify(activeCategories));
+  }, [activeCategories]);
 
   const handleResult = (category: Category) => {
     setSelectedCategory(category);
@@ -36,6 +77,25 @@ export const Home: React.FC = () => {
     if (i18n.language.startsWith('en')) return 'English';
     if (i18n.language.startsWith('ja')) return '日本語';
     return 'Language';
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: '晚餐吃什麼轉盤｜選擇困難症救星',
+      text: '不知道下一餐吃什麼？點擊吃什麼轉盤隨機決定！',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('網址已複製到剪貼簿！');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
   };
 
   const handleOpenMaps = () => {
@@ -85,11 +145,42 @@ export const Home: React.FC = () => {
 
   const isCategoryActive = (id: string) => activeCategories.some(c => c.id === id);
 
-  const selectAll = () => setActiveCategories(DEFAULT_CATEGORIES);
+  const selectAll = () => setActiveCategories(allCategories);
   const deselectAll = () => {
     // Keep at least one random category to prevent empty state
-    const random = DEFAULT_CATEGORIES[Math.floor(Math.random() * DEFAULT_CATEGORIES.length)];
+    const random = allCategories[Math.floor(Math.random() * allCategories.length)];
     setActiveCategories([random]);
+  };
+
+  const handleAddCustomCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FDCB6E', '#6C5CE7', '#FF7675', '#E17055', '#00B894', '#FF9F43', '#54A0FF', '#5F27CD', '#FF4757', '#2ED573', '#FFA502', '#3742FA', '#FF7F50', '#2F3542', '#7BED9F', '#ECCC68', '#FF6348'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const newCategory: Category = {
+      id: `custom-${Date.now()}`,
+      color: randomColor,
+      isCustom: true,
+      customName: newCategoryName.trim()
+    };
+    
+    setCustomCategories(prev => [...prev, newCategory]);
+    setActiveCategories(prev => [...prev, newCategory]);
+    setNewCategoryName('');
+  };
+
+  const handleDeleteCustomCategory = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCustomCategories(prev => prev.filter(c => c.id !== id));
+    setActiveCategories(prev => {
+      const newActive = prev.filter(c => c.id !== id);
+      if (newActive.length === 0) {
+        return [DEFAULT_CATEGORIES[0]];
+      }
+      return newActive;
+    });
   };
 
   return (
@@ -101,8 +192,16 @@ export const Home: React.FC = () => {
         </h1>
         <div className="flex gap-2">
           <button 
+            onClick={handleShare}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-600 active:scale-95 transition-transform"
+            aria-label="Share"
+          >
+            <Share2 size={18} />
+          </button>
+          <button 
             onClick={() => setShowFilter(true)}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-600 active:scale-95 transition-transform"
+            aria-label="Filter"
           >
             <Filter size={18} />
           </button>
@@ -111,7 +210,7 @@ export const Home: React.FC = () => {
             className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow-sm border border-slate-100 text-slate-600 text-sm font-medium active:scale-95 transition-transform"
           >
             <Globe size={16} />
-            <span>{getLanguageName()}</span>
+            <span className="hidden sm:inline">{getLanguageName()}</span>
           </button>
         </div>
       </header>
@@ -215,9 +314,9 @@ export const Home: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[80vh] sm:h-[70vh] flex flex-col shadow-2xl"
+              className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md h-[85vh] sm:h-[80vh] flex flex-col shadow-2xl"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
                 <h3 className="text-xl font-bold text-slate-800">
                   {t('filter.title', '篩選食物')}
                 </h3>
@@ -229,31 +328,53 @@ export const Home: React.FC = () => {
                 </button>
               </div>
               
-              <div className="p-4 flex gap-3 border-b border-slate-100 bg-slate-50/50">
-                <button 
-                  onClick={selectAll}
-                  className="flex-1 py-2 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 shadow-sm active:scale-95 transition-transform"
-                >
-                  {t('filter.selectAll', '全選')}
-                </button>
-                <button 
-                  onClick={deselectAll}
-                  className="flex-1 py-2 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 shadow-sm active:scale-95 transition-transform"
-                >
-                  {t('filter.deselectAll', '取消全選')}
-                </button>
+              <div className="p-4 flex flex-col gap-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                {/* Add Custom Option Form */}
+                <form onSubmit={handleAddCustomCategory} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder={t('filter.addCustom', '新增自訂選項...')}
+                    className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    maxLength={15}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newCategoryName.trim()}
+                    className="px-4 py-2 bg-slate-800 text-white rounded-xl font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    {t('filter.add', '新增')}
+                  </button>
+                </form>
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={selectAll}
+                    className="flex-1 py-2 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 shadow-sm active:scale-95 transition-transform"
+                  >
+                    {t('filter.selectAll', '全選')}
+                  </button>
+                  <button 
+                    onClick={deselectAll}
+                    className="flex-1 py-2 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 shadow-sm active:scale-95 transition-transform"
+                  >
+                    {t('filter.deselectAll', '取消全選')}
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-2 gap-3">
-                  {DEFAULT_CATEGORIES.map(category => {
+                  {allCategories.map(category => {
                     const isActive = isCategoryActive(category.id);
                     return (
                       <button
                         key={category.id}
                         onClick={() => toggleCategory(category)}
                         className={`
-                          relative flex items-center gap-3 p-3 rounded-xl border text-left transition-all
+                          relative flex items-center gap-3 p-3 rounded-xl border text-left transition-all group
                           ${isActive 
                             ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-sm' 
                             : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'}
@@ -263,21 +384,35 @@ export const Home: React.FC = () => {
                           className="w-3 h-3 rounded-full shrink-0" 
                           style={{ backgroundColor: category.color }}
                         />
-                        <span className="font-medium text-sm truncate">
-                          {t(`categories.${category.id}`)}
+                        <span className="font-medium text-sm truncate pr-10">
+                          {category.isCustom && category.customName 
+                            ? category.customName 
+                            : t(`categories.${category.id}`)}
                         </span>
-                        {isActive && (
-                          <div className="absolute top-2 right-2 text-blue-500">
-                            <Check size={14} />
-                          </div>
-                        )}
+                        
+                        <div className="absolute top-1/2 -translate-y-1/2 right-2 flex items-center gap-1">
+                          {isActive && (
+                            <div className="text-blue-500 p-1">
+                              <Check size={14} />
+                            </div>
+                          )}
+                          
+                          {category.isCustom && (
+                            <div 
+                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                              onClick={(e) => handleDeleteCustomCategory(category.id, e)}
+                            >
+                              <Trash2 size={14} />
+                            </div>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
               </div>
               
-              <div className="p-6 border-t border-slate-100">
+              <div className="p-6 border-t border-slate-100 shrink-0">
                 <button
                   onClick={() => setShowFilter(false)}
                   className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl active:scale-95 transition-transform"
