@@ -47,6 +47,11 @@ const resources = {
       a2hs: {
         ios: '點擊下方分享按鈕，選擇「加入主畫面」以獲得最佳體驗',
         android: '點擊右上角選單，選擇「加到主畫面」以獲得最佳體驗',
+        desktop: '點擊網址列右側的安裝圖示，將應用程式加到桌面',
+        installTitle: '安裝 App 到手機桌面',
+        installDesc: '一鍵安裝「吃什麼轉盤」，隨時隨地解決選擇困難，體驗更流暢！',
+        installBtn: '立即安裝',
+        addTitle: '加到主畫面',
         dismiss: '我知道了',
       },
       locationPrompt: {
@@ -127,6 +132,11 @@ const resources = {
       a2hs: {
         ios: 'Tap the share button below and select "Add to Home Screen" for the best experience',
         android: 'Tap the menu button and select "Add to Home screen" for the best experience',
+        desktop: 'Click the install icon in the address bar to add the app to your desktop',
+        installTitle: 'Install App to Home Screen',
+        installDesc: 'Install "What to Eat" with one click to solve your indecision anytime, anywhere, and enjoy a smoother experience!',
+        installBtn: 'Install Now',
+        addTitle: 'Add to Home Screen',
         dismiss: 'Got it',
       },
       locationPrompt: {
@@ -207,6 +217,11 @@ const resources = {
       a2hs: {
         ios: '下の共有ボタンをタップし、「ホーム画面に追加」を選択して最適な体験を',
         android: 'メニューボタンをタップし、「ホーム画面に追加」を選択して最適な体験を',
+        desktop: 'アドレスバーのインストールアイコンをクリックして、アプリをデスクトップに追加します',
+        installTitle: 'アプリをホーム画面にインストール',
+        installDesc: '「今日何食べる？」をワンクリックでインストールし、いつでもどこでも優柔不断を解決し、よりスムーズな体験をお楽しみください！',
+        installBtn: '今すぐインストール',
+        addTitle: 'ホーム画面に追加',
         dismiss: 'OK',
       },
       locationPrompt: {
