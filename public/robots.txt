@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://eat-what.autumnsnow.work/sitemap.xml
